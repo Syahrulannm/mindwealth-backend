@@ -1,8 +1,6 @@
 // src/controllers/articleController.js
 import Article from "../models/articleModel.js";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import cloudinary from "../config/cloudinary.js";
 
 export const getArticles = async (req, res) => {
   try {
@@ -71,9 +69,6 @@ export const getArticleById = async (req, res) => {
   }
 };
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 export const updateArticle = async (req, res) => {
   try {
     const { title, slug, category, published, content } = req.body;
@@ -96,13 +91,31 @@ export const updateArticle = async (req, res) => {
 
     // Update cover image
     if (req.file) {
-      if (article.coverImage) {
-        const oldImagePath = path.join(__dirname, "..", "uploads", article.coverImage);
-        if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
-      }
-      article.coverImage = req.file.filename;
-    }
+      // Simpan public_id gambar lama untuk cleanup
+      const oldImageId = article.coverImageId;
 
+      // Update dengan data dari Cloudinary
+      article.coverImage = req.file.path; // URL dari Cloudinary
+      article.coverImageId = req.file.filename; // public_id dari Cloudinary
+      // Save artikel dulu
+      const updated = await article.save();
+      // Auto cleanup gambar lama dari Cloudinary (bukan dari local)
+      if (oldImageId) {
+        // Jalankan async cleanup tanpa blocking response
+        setTimeout(async () => {
+          try {
+            const result = await cloudinary.uploader.destroy(oldImageId);
+            console.log(`✅ Auto cleanup old image: ${oldImageId} - Result: ${result.result}`);
+          } catch (error) {
+            console.error(`❌ Failed to cleanup old image ${oldImageId}:`, error.message);
+            // Optional: Log ke monitoring system untuk manual cleanup
+          }
+        }, 100);
+      }
+
+      return res.json(updated);
+    }
+    // Jika tidak ada file baru, save seperti biasa
     const updated = await article.save();
     res.json(updated);
   } catch (error) {

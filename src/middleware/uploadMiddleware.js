@@ -1,22 +1,10 @@
 // src/middleware/uploadMiddleware.js
-
 import multer from "multer";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary.js";
 import path from "path";
 
-// Konfigurasi Multer untuk menyimpan file
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // Tentukan folder penyimpanan
-    cb(null, "uploads/"); // Pastikan folder ini ada
-  },
-  // Tentukan nama file yang akan disimpan
-  filename: function (req, file, cb) {
-    // Tentukan nama file unik
-    cb(null, Date.now() + "-" + file.originalname); // Menggunakan timestamp untuk menghindari duplikasi nama file
-  },
-});
-
-// File filter untuk mengizinkan hanya tipe file tertentu (misalnya, gambar)
+// File filter tetap sama - masih berguna untuk validasi
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|gif|webp/;
   const ext = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -25,12 +13,28 @@ const fileFilter = (req, file, cb) => {
   if (ext && mime) {
     cb(null, true);
   } else {
-    cb(new Error("Only images are allowed")); // Mengembalikan error jika tipe file tidak sesuai
+    cb(new Error("Only images are allowed"));
   }
 };
 
-// Middleware multer untuk mengunggah satu file dengan nama 'coverImage'
-// Middleware ini diekspor sebagai default
-const uploadSingleImage = multer({ storage, fileFilter }).single("coverImage");
+// Ganti diskStorage dengan CloudinaryStorage
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "mindwealth/blog-covers", // folder di Cloudinary
+    allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
+    transformation: [{ width: 1200, height: 800, crop: "fill", quality: "auto" }],
+    // Cloudinary akan generate unique filename otomatis
+  },
+});
+
+// Middleware tetap sama, cuma storage-nya yang berubah
+const uploadSingleImage = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+}).single("coverImage");
 
 export default uploadSingleImage;
