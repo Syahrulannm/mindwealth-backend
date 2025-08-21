@@ -26,7 +26,8 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://mindwealth.netlify.app/"],
+    origin: ["https://mindwealth.netlify.app"],
+    //http://localhost:5173"untuk ke local,
     credentials: true,
   })
 ); // enable CORS untuk semua origin (bisa dikustomisasi)
