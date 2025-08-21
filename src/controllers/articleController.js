@@ -14,7 +14,6 @@ export const getArticles = async (req, res) => {
 export const createArticle = async (req, res) => {
   try {
     const { title, content, slug, category, published } = req.body;
-    const coverImage = req.file ? req.file.filename : null;
 
     // Validasi wajib
     if (!title || !slug) {
@@ -32,12 +31,14 @@ export const createArticle = async (req, res) => {
       title,
       content: typeof content === "string" ? JSON.parse(content) : content,
       slug,
-      coverImage: req.file ? `${process.env.BASE_URL}/uploads/${req.file.filename}` : null,
+      coverImage: req.file ? req.file.path : null, // URL Cloudinary langsung
+      coverImageId: req.file ? req.file.filename : null, // public_id untuk cleanup
       category,
       published: published === "true" || published === true,
     });
 
     await article.save();
+    console.log("Saved coverImage:", article.coverImage); // Debug
     res.status(201).json(article);
   } catch (error) {
     console.error("Error creating article:", error);
