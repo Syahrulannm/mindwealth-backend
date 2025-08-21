@@ -21,7 +21,7 @@ mongoose
   });
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 app.use(
   cors({
     origin: ["http://localhost:5173", "https://mindwealth.netlify.app"],

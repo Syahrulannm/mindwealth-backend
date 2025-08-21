@@ -7,7 +7,6 @@ import { fileURLToPath } from "url";
 export const getArticles = async (req, res) => {
   try {
     const articles = await Article.find();
-    console.log("✅ Articles from DB:", articles);
     res.json(articles);
   } catch (error) {
     res.status(500).json({ message: error.message });
