@@ -6,6 +6,8 @@ import dotenv from "dotenv";
 dotenv.config();
 import authRoutes from "./routes/authRoutes.js";
 import articleRoutes from "./routes/articles.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // Koneksi ke MongoDB
 mongoose
@@ -28,10 +30,11 @@ app.use(
     credentials: true,
   })
 ); // enable CORS untuk semua origin (bisa dikustomisasi)
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 app.use(express.json()); // agar bisa baca body JSON
 app.use("/api", authRoutes);
-app.use("/uploads", express.static("uploads")); // agar bisa akses gambar
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // agar bisa akses gambar
 app.use("/api/articles", articleRoutes);
 
 // Route untuk menguji server

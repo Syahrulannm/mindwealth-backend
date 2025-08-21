@@ -34,7 +34,7 @@ export const createArticle = async (req, res) => {
       title,
       content: typeof content === "string" ? JSON.parse(content) : content,
       slug,
-      coverImage,
+      coverImage: req.file ? `${process.env.BASE_URL}/uploads/${req.file.filename}` : null,
       category,
       published: published === "true" || published === true,
     });
